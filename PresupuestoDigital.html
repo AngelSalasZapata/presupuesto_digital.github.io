@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presupuesto Digital Nachito</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #219c2f 0%, #fff821 100%);
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #fff821, #219c2f);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        /* Estilos del calendario */
+        .calendar-container {
+            margin-bottom: 30px;
+        }
+
+        #calendar {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #calendar caption {
+            background: linear-gradient(45deg, #667eea, #2540a2);
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            font-size: 18px;
+            text-align: center;  
+            display: table-caption;
+            caption-side: top;    
+        }
+
+        #calendar caption .nav-buttons a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            margin: 0 5px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #calendar caption .nav-buttons a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        #calendar th {
+            background-color: #4a5568;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            width: 14.28%;
+        }
+
+        #calendar td {
+            padding: 15px 5px;
+            text-align: center;
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        #calendar td:hover {
+            background-color: #e2e8f0;
+            transform: scale(1.05);
+        }
+
+        #calendar td.hoy {
+            background: linear-gradient(45deg, #ffd700, #ffa500);
+            color: white;
+            font-weight: bold;
+        }
+
+        #calendar td.has-data {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        #calendar td a {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        /* resumen financiero */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+            border-left: 5px solid;
+        }
+
+        .summary-card.income { border-left-color: #48bb78; }
+        .summary-card.expense { border-left-color: #f56565; }
+        .summary-card.balance { border-left-color: #667eea; }
+
+        .summary-card h3 {
+            margin: 0 0 10px 0;
+            color: #2d3748;
+        }
+
+        .summary-card .amount {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .summary-card.income .amount { color: #48bb78; }
+        .summary-card.expense .amount { color: #f56565; }
+        .summary-card.balance .amount { color: #667eea; }
+
+        /* modal del formulario */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 2% auto;             
+            padding: 0;
+            border-radius: 20px;
+            width: 100%;               
+            max-width: 1500px;          
+            max-height: 100vh;                  
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 5px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 20px 30px;
+            max-height: calc(90vh - 150px); 
+            overflow-y: auto;            
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .form-section h3 {
+            margin: 0 0 20px 0;
+            color: #2d3748;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-group input[type="text"] {
+            flex: 2;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input[type="number"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .totals {
+            background: #e2e8f0;
+            padding: 5px;
+            border-radius: 10px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .save-btn {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: transform 0.3s;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+
+        .add-item-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .remove-item-btn {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 5px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Presupuesto Digital Nachito 💰</h1>
+        </div>
+        
+        <div class="main-content">
+            <!-- resumen financiero -->
+            <div class="summary-cards">
+                <div class="summary-card income">
+                    <h3>Ingresos Totales</h3>
+                    <p class="amount" id="total-income">$0.00</p>
+                </div>
+                <div class="summary-card expense">
+                    <h3>Gastos Totales</h3>
+                    <p class="amount" id="total-expenses">$0.00</p>
+                </div>
+                <div class="summary-card balance">
+                    <h3>Balance</h3>
+                    <p class="amount" id="total-balance">$0.00</p>
+                </div>
+            </div>
+
+            <!-- calendario -->
+            <div class="calendar-container">
+                <table id="calendar">
+                    <caption>
+                        <span id="month-year"></span>
+                        <div class="nav-buttons">
+                            <a id="prev-month">&lt;</a>
+                            <a id="next-month">&gt;</a>
+                        </div>
+                    </caption>
+                    <thead>
+                        <tr>
+                            <th>Lun</th>
+                            <th>Mar</th>
+                            <th>Mie</th>
+                            <th>Jue</th>
+                            <th>Vie</th>
+                            <th>Sab</th>
+                            <th>Dom</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- modal del formulario -->
+    <div id="dayModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Registros del día</h2>
+                <button class="close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="dayForm">
+                    <div class="form-grid">
+                        <!-- gastos -->
+                        <div class="form-section">
+                            <h3>💸 Gastos</h3>
+                            <div id="expenses-container">
+                                <div class="input-group">
+                                    <input type="text" placeholder="Descripción del gasto" class="expense-desc">
+                                    <input type="number" step="0.01" placeholder="0.00" class="expense-amount">
+                                    <button type="button" class="remove-item-btn">✕</button>
+                                </div>
+                            </div>
+                            <button type="button" class="add-item-btn" onclick="addExpenseItem()">+ Agregar Gasto</button>
+                            <div class="totals">
+                                <strong>Total Gastos: $<span id="expenses-total">0.00</span></strong>
+                            </div>
+                        </div>
+
+                        <!-- ingresos -->
+                        <div class="form-section">
+                            <h3>💰 Ingresos</h3>
+                            <div id="income-container">
+                                <div class="input-group">
+                                    <input type="text" placeholder="Descripción del ingreso" class="income-desc">
+                                    <input type="number" step="0.01" placeholder="0.00" class="income-amount">
+                                    <button type="button" class="remove-item-btn">✕</button>
+                                </div>
+                            </div>
+                            <button type="button" class="add-item-btn" onclick="addIncomeItem()">+ Agregar Ingreso</button>
+                            <div class="totals">
+                                <strong>Total Ingresos: $<span id="income-total">0.00</span></strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="totals" style="margin-top: 10px; padding: 10px; background: #f0f4f8;">
+                        <h3>Balance del Día: $<span id="day-balance">0.00</span></h3>
+                    </div>
+
+                    <button type="submit" class="save-btn">💾 Guardar Registros</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // variables globales
+        let currentDate = new Date();
+        let selectedDate = null;
+        let budgetData = JSON.parse(localStorage.getItem('budgetData')) || {};
+
+        // inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            showCalendar(currentDate.getFullYear(), currentDate.getMonth() + 1);
+            updateSummary();
+        });
+
+        function setupEventListeners() {
+            // navegación del calendario
+            document.getElementById('prev-month').addEventListener('click', () => {
+                if (currentDate.getMonth() === 0) {
+                    currentDate.setFullYear(currentDate.getFullYear() - 1);
+                    currentDate.setMonth(11);
+                } else {
+                    currentDate.setMonth(currentDate.getMonth() - 1);
+                }
+                showCalendar(currentDate.getFullYear(), currentDate.getMonth() + 1);
+            });
+
+            document.getElementById('next-month').addEventListener('click', () => {
+                if (currentDate.getMonth() === 11) {
+                    currentDate.setFullYear(currentDate.getFullYear() + 1);
+                    currentDate.setMonth(0);
+                } else {
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                }
+                showCalendar(currentDate.getFullYear(), currentDate.getMonth() + 1);
+            });
+
+            // modal
+            document.querySelector('.close').addEventListener('click', closeModal);
+            document.getElementById('dayModal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('dayModal')) {
+                    closeModal();
+                }
+            });
+
+            // formulario
+            document.getElementById('dayForm').addEventListener('submit', saveData);
+
+            // calculadoras en tiempo real
+            document.addEventListener('input', function(e) {
+                if (e.target.classList.contains('expense-amount') || e.target.classList.contains('income-amount')) {
+                    calculateTotals();
+                }
+            });
+
+            // botones de eliminar
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-item-btn')) {
+                    e.target.parentElement.remove();
+                    calculateTotals();
+                }
+            });
+        }
+
+        function showCalendar(year, month) {
+            const firstDay = new Date(year, month - 1, 1);
+            const lastDay = new Date(year, month, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay() === 0 ? 7 : firstDay.getDay();
+
+            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+            document.getElementById('month-year').textContent = `${monthNames[month - 1]} ${year}`;
+
+            let calendarHTML = '';
+            let day = 1;
+
+            // crear filas del calendario
+            for (let week = 0; week < 6; week++) {
+                calendarHTML += '<tr>';
+                
+                for (let dayOfWeek = 1; dayOfWeek <= 7; dayOfWeek++) {
+                    if ((week === 0 && dayOfWeek < startingDayOfWeek) || day > daysInMonth) {
+                        calendarHTML += '<td></td>';
+                    } else {
+                        const dateKey = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                        const isToday = isCurrentDay(year, month, day);
+                        const hasData = budgetData[dateKey] && (budgetData[dateKey].expenses.length > 0 || budgetData[dateKey].income.length > 0);
+                        
+                        let classes = '';
+                        if (isToday) classes += 'hoy ';
+                        if (hasData) classes += 'has-data ';
+
+                        calendarHTML += `<td class="${classes}" onclick="openDayModal(${year}, ${month}, ${day})">${day}</td>`;
+                        day++;
+                    }
+                }
+                
+                calendarHTML += '</tr>';
+                
+                if (day > daysInMonth) break;
+            }
+
+            document.querySelector('#calendar tbody').innerHTML = calendarHTML;
+        }
+
+        function isCurrentDay(year, month, day) {
+            const today = new Date();
+            return year === today.getFullYear() && 
+                   month === today.getMonth() + 1 && 
+                   day === today.getDate();
+        }
+
+        function openDayModal(year, month, day) {
+            selectedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+            
+            document.getElementById('modal-title').textContent = `Registros del ${day}/${month}/${year}`;
+            
+            // cargar datos existentes
+            loadDayData(selectedDate);
+            
+            document.getElementById('dayModal').style.display = 'block';
+            calculateTotals();
+        }
+
+        function closeModal() {
+            document.getElementById('dayModal').style.display = 'none';
+        }
+
+        function loadDayData(dateKey) {
+            const data = budgetData[dateKey] || { expenses: [], income: [] };
+            
+            // limpiar contenedores
+            document.getElementById('expenses-container').innerHTML = '';
+            document.getElementById('income-container').innerHTML = '';
+            
+            // cargar gastos
+            if (data.expenses.length === 0) {
+                addExpenseItem();
+            } else {
+                data.expenses.forEach(expense => {
+                    addExpenseItem(expense.desc, expense.amount);
+                });
+            }
+            
+            // cargar ingresos
+            if (data.income.length === 0) {
+                addIncomeItem();
+            } else {
+                data.income.forEach(income => {
+                    addIncomeItem(income.desc, income.amount);
+                });
+            }
+        }
+
+        function addExpenseItem(desc = '', amount = '') {
+            const container = document.getElementById('expenses-container');
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.innerHTML = `
+                <input type="text" placeholder="Descripción del gasto" class="expense-desc" value="${desc}">
+                <input type="number" step="0.01" placeholder="0.00" class="expense-amount" value="${amount}">
+                <button type="button" class="remove-item-btn">✕</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function addIncomeItem(desc = '', amount = '') {
+            const container = document.getElementById('income-container');
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.innerHTML = `
+                <input type="text" placeholder="Descripción del ingreso" class="income-desc" value="${desc}">
+                <input type="number" step="0.01" placeholder="0.00" class="income-amount" value="${amount}">
+                <button type="button" class="remove-item-btn">✕</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function calculateTotals() {
+            // calcular total de gastos
+            const expenseAmounts = Array.from(document.querySelectorAll('.expense-amount'))
+                .map(input => parseFloat(input.value) || 0);
+            const totalExpenses = expenseAmounts.reduce((sum, amount) => sum + amount, 0);
+            
+            // calcular total de ingresos
+            const incomeAmounts = Array.from(document.querySelectorAll('.income-amount'))
+                .map(input => parseFloat(input.value) || 0);
+            const totalIncome = incomeAmounts.reduce((sum, amount) => sum + amount, 0);
+            
+            // actualizar totales en el modal
+            document.getElementById('expenses-total').textContent = totalExpenses.toFixed(2);
+            document.getElementById('income-total').textContent = totalIncome.toFixed(2);
+            document.getElementById('day-balance').textContent = (totalIncome - totalExpenses).toFixed(2);
+        }
+
+        function saveData(e) {
+            e.preventDefault();
+            
+            // recopilar datos de gastos
+            const expenseInputs = document.querySelectorAll('#expenses-container .input-group');
+            const expenses = Array.from(expenseInputs).map(group => ({
+                desc: group.querySelector('.expense-desc').value.trim(),
+                amount: parseFloat(group.querySelector('.expense-amount').value) || 0
+            })).filter(item => item.desc || item.amount > 0);
+            
+            // recopilar datos de ingresos
+            const incomeInputs = document.querySelectorAll('#income-container .input-group');
+            const income = Array.from(incomeInputs).map(group => ({
+                desc: group.querySelector('.income-desc').value.trim(),
+                amount: parseFloat(group.querySelector('.income-amount').value) || 0
+            })).filter(item => item.desc || item.amount > 0);
+            
+            // guardar en budgetData
+            budgetData[selectedDate] = { expenses, income };
+            
+            // persistir datos
+            localStorage.setItem('budgetData', JSON.stringify(budgetData));
+            
+            // actualizar interfaz
+            updateSummary();
+            showCalendar(currentDate.getFullYear(), currentDate.getMonth() + 1);
+            closeModal();
+            
+            // mostrar confirmación
+            alert('¡Datos guardados correctamente!');
+        }
+
+        function updateSummary() {
+            let totalIncome = 0;
+            let totalExpenses = 0;
+            
+            Object.values(budgetData).forEach(dayData => {
+                dayData.income.forEach(item => totalIncome += item.amount);
+                dayData.expenses.forEach(item => totalExpenses += item.amount);
+            });
+            
+            const balance = totalIncome - totalExpenses;
+            
+            document.getElementById('total-income').textContent = `$${totalIncome.toFixed(2)}`;
+            document.getElementById('total-expenses').textContent = `$${totalExpenses.toFixed(2)}`;
+            document.getElementById('total-balance').textContent = `$${balance.toFixed(2)}`;
+            
+            // cambiar color del balance según sea positivo o negativo
+            const balanceElement = document.getElementById('total-balance');
+            balanceElement.style.color = balance >= 0 ? '#48bb78' : '#f56565';
+        }
+    </script>
+</body>
+</html>
