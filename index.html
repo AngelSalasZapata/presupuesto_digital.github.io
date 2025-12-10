@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presupuesto Digital Nachito</title>
+    <title>Presupuesto Digital</title>
     <style>
         body {
             background: linear-gradient(135deg, #219c2f 0%, #fff821 100%);
@@ -309,12 +309,125 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+
             .form-grid {
                 grid-template-columns: 1fr;
             }
             
             .summary-cards {
                 grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .summary-card {
+                padding: 15px;
+            }
+
+            .summary-card .amount {
+                font-size: 1.5em;
+            }
+
+            /* Hacer el calendario más compacto en móvil */
+            #calendar {
+                font-size: 12px;
+            }
+
+            #calendar caption {
+                padding: 10px;
+                font-size: 16px;
+            }
+
+            #calendar th {
+                padding: 8px 2px;
+                font-size: 11px;
+            }
+
+            #calendar td {
+                padding: 10px 2px;
+                font-size: 12px;
+            }
+
+            /* Modal adaptado para móvil */
+            .modal-content {
+                width: 95%;
+                margin: 5% auto;
+                max-height: 95vh;
+            }
+
+            .modal-header {
+                padding: 15px;
+            }
+
+            .modal-header h2 {
+                font-size: 1.2em;
+            }
+
+            .modal-body {
+                padding: 15px;
+                max-height: calc(95vh - 120px);
+            }
+
+            .form-section {
+                padding: 15px;
+            }
+
+            .form-section h3 {
+                font-size: 1.1em;
+            }
+
+            .input-group {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .input-group input[type="text"],
+            .input-group input[type="number"] {
+                width: 100%;
+                flex: none;
+            }
+
+            .save-btn {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            .add-item-btn {
+                width: 100%;
+                padding: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            #calendar {
+                font-size: 10px;
+            }
+
+            #calendar th,
+            #calendar td {
+                padding: 6px 1px;
+            }
+
+            .summary-card h3 {
+                font-size: 0.9em;
+            }
+
+            .summary-card .amount {
+                font-size: 1.3em;
             }
         }
     </style>
@@ -322,7 +435,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>💰 Presupuesto Digital Nachito 💰</h1>
+            <h1>💰 Presupuesto Digital 💰</h1>
         </div>
         
         <div class="main-content">
