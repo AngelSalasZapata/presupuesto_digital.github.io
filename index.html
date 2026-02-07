@@ -184,7 +184,7 @@
 
         .modal-header {
             background: #667eea;
-            color: white;
+            color: rgb(226, 213, 189);
             padding: 5px 5px;
             border-radius: 20px 20px 0 0;
             display: flex;
@@ -442,15 +442,15 @@
             <!-- resumen financiero -->
             <div class="summary-cards">
                 <div class="summary-card income">
-                    <h3>Ingresos Totales</h3>
+                    <h3>Ingresos del Mes</h3>
                     <p class="amount" id="total-income">$0.00</p>
                 </div>
                 <div class="summary-card expense">
-                    <h3>Gastos Totales</h3>
+                    <h3>Gastos del Mes</h3>
                     <p class="amount" id="total-expenses">$0.00</p>
                 </div>
                 <div class="summary-card balance">
-                    <h3>Balance</h3>
+                    <h3>Balance del Mes</h3>
                     <p class="amount" id="total-balance">$0.00</p>
                 </div>
             </div>
@@ -545,7 +545,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             setupEventListeners();
             showCalendar(currentDate.getFullYear(), currentDate.getMonth() + 1);
-            updateSummary();
+            updateMonthlySummary(currentDate.getFullYear(), currentDate.getMonth() + 1);
         });
 
         function setupEventListeners() {
@@ -558,6 +558,7 @@
                     currentDate.setMonth(currentDate.getMonth() - 1);
                 }
                 showCalendar(currentDate.getFullYear(), currentDate.getMonth() + 1);
+                updateMonthlySummary(currentDate.getFullYear(), currentDate.getMonth() + 1);
             });
 
             document.getElementById('next-month').addEventListener('click', () => {
@@ -568,6 +569,7 @@
                     currentDate.setMonth(currentDate.getMonth() + 1);
                 }
                 showCalendar(currentDate.getFullYear(), currentDate.getMonth() + 1);
+                updateMonthlySummary(currentDate.getFullYear(), currentDate.getMonth() + 1);
             });
 
             // modal
@@ -754,7 +756,8 @@
             localStorage.setItem('budgetData', JSON.stringify(budgetData));
             
             // actualizar interfaz
-            updateSummary();
+            const [year, month] = selectedDate.split('-').map(Number);
+            updateMonthlySummary(year, month);
             showCalendar(currentDate.getFullYear(), currentDate.getMonth() + 1);
             closeModal();
             
@@ -762,24 +765,38 @@
             alert('¡Datos guardados correctamente!');
         }
 
-        function updateSummary() {
-            let totalIncome = 0;
-            let totalExpenses = 0;
+
+        function updateMonthlySummary(year, month) {
+            let monthlyIncome = 0;
+            let monthlyExpenses = 0;
             
-            Object.values(budgetData).forEach(dayData => {
-                dayData.income.forEach(item => totalIncome += item.amount);
-                dayData.expenses.forEach(item => totalExpenses += item.amount);
+
+            const monthPrefix = `${year}-${month.toString().padStart(2, '0')}`;
+            
+            // Filtrar solo los datos del mes actual
+            Object.keys(budgetData).forEach(dateKey => {
+                // Verificar si la fecha pertenece al mes actual
+                if (dateKey.startsWith(monthPrefix)) {
+                    const dayData = budgetData[dateKey];
+                    
+                    // Sumar ingresos del día
+                    dayData.income.forEach(item => monthlyIncome += item.amount);
+                    
+                    // Sumar gastos del día
+                    dayData.expenses.forEach(item => monthlyExpenses += item.amount);
+                }
             });
             
-            const balance = totalIncome - totalExpenses;
+            const monthlyBalance = monthlyIncome - monthlyExpenses;
             
-            document.getElementById('total-income').textContent = `$${totalIncome.toFixed(2)}`;
-            document.getElementById('total-expenses').textContent = `$${totalExpenses.toFixed(2)}`;
-            document.getElementById('total-balance').textContent = `$${balance.toFixed(2)}`;
+
+            document.getElementById('total-income').textContent = `$${monthlyIncome.toFixed(2)}`;
+            document.getElementById('total-expenses').textContent = `$${monthlyExpenses.toFixed(2)}`;
+            document.getElementById('total-balance').textContent = `$${monthlyBalance.toFixed(2)}`;
             
-            // cambiar color del balance según sea positivo o negativo
+
             const balanceElement = document.getElementById('total-balance');
-            balanceElement.style.color = balance >= 0 ? '#48bb78' : '#f56565';
+            balanceElement.style.color = monthlyBalance >= 0 ? '#48bb78' : '#f56565';
         }
     </script>
 </body>
